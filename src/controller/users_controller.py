@@ -15,3 +15,4 @@ def user_login():
     except Exception as e:
         traceback.print_exc()
         return make_response(f"Error user_login controller : {e}", 204)
+    

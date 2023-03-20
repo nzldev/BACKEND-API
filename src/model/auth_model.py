@@ -3,7 +3,6 @@ import psycopg2
 from app import app
 from urllib import request
 from flask import make_response, request, json
-# from datetime import datetime, timedelta
 import jwt
 import re
 from db.database import connect
