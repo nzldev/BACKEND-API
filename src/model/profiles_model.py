@@ -39,3 +39,106 @@ class profiles():
         except Exception as e:
             self.conn.rollback()
             return make_response({"message": f"Error retrieving add profile : {e}"}, 500)
+
+    def get_profile(self, id):
+        try:
+            self.cur.execute("SELECT * FROM profiles WHERE id=%s", (id,))
+            row = self.cur.fetchone()
+            if row is not None:
+                profile = dict(id=row[0], name=row[1], email=row[2], telephone=row[3],
+                               adresse=row[4], image=row[5], description=row[6], user_id=row[7])
+                return make_response(profile, 200)
+            else:
+                return make_response({"message": "No profile found !"}, 202)
+        except Exception as e:
+            self.conn.rollback()
+            return make_response({"message": f"Error retrieving get profile : {e}"}, 500)
+
+    def get_all_profiles(self):
+        try:
+            self.cur.execute("SELECT * FROM profiles")
+            self.conn.commit()
+            profiles = [
+                dict(id=row[0], name=row[1], email=row[2], telephone=row[3],
+                     adresse=row[4], image=row[5], description=row[6], user_id=row[7])
+                for row in self.cur.fetchall()
+            ]
+            if profiles is not None:
+                res = make_response(profiles, 200)
+                # res.headers['Access-Control-Allow-Origin'] = "*"
+                return res
+            else:
+                return make_response({"message": "No profiles found !"}, 202)
+        except Exception as e:
+            self.conn.rollback()
+            return make_response({"message": f"Error retrieving get all profiles : {e}"}, 500)
+
+    def update_profile(self, id, data):
+        try:
+             # Decode the data bytes to string and parse as JSON
+            data_str = data.decode('utf-8')
+            data_dict = json.loads(data_str)
+            
+            current_name = data_dict['name']
+            current_email = data_dict['email']
+            current_telephone = data_dict['telephone']
+            current_adresse = data_dict['adresse']
+            current_description = data_dict['description']
+            sql = """UPDATE profiles
+                    SET name=%s,
+                        email=%s,
+                        telephone=%s,
+                        adresse=%s,
+                        description=%s
+                    WHERE id=%s"""
+            self.cur.execute(sql, (current_name, current_email, current_telephone,
+                                   current_adresse, current_description, id))
+            self.conn.commit()
+            # Return the updated profile
+            updated_profile = {
+                "name": current_name,
+                "email": current_email,
+                "telephone": current_telephone,
+                "adresse": current_adresse,
+                "description": current_description
+            }
+            if self.cur.rowcount > 0:
+                return make_response(updated_profile, 201)
+            else:
+                return make_response({"message": "Nothing to Updated in update model"}, 202)
+        except Exception as e:
+            self.conn.rollback()
+            return make_response({"message": f"Error retrieving update profile : {e}"}, 500)
+
+    def delete_profile(self, id):
+        try:
+            self.cur.execute(f"DELETE from profiles WHERE id=%s", (id,))
+            self.conn.commit()
+            if self.cur.rowcount > 0:
+                return make_response("Profile deleted Successfully", 200)
+            else:
+                return make_response("Nothing Deleted", 202)
+        except Exception as e:
+            self.conn.rollback()
+            return make_response({"message": f"Error retrieving delete profile : {e}"}, 500)
+
+
+    # FILES HEREEEEE
+
+    def profile_upload_image(self, uid, filepath):
+        self.cur.execute(
+            f"UPDATE profiles SET image='{filepath}' WHERE id=%s", (uid,))
+        self.conn.commit()
+        if self.cur.rowcount > 0:
+            return make_response({"message": "Profile image updated successfully !"}, 201)
+        else:
+            return make_response({"message": "Nothing done !!!!!!"}, 202)
+
+    def get_image_by_id_profile(self, id):
+        self.cur.execute("SELECT image FROM profiles WHERE id=%s", (id,))
+        result = self.cur.fetchone()
+        if result is not None:
+            image_path = result[0]
+            return send_file(image_path)
+        else:
+            return make_response({"message": "No image found for this profile!"}, 404)

@@ -9,6 +9,16 @@ from datetime import datetime
 obj = profiles()
 auth = auth_model()
 
+
+@app.route("/profiles", methods=["GET"])
+@auth.token_auth()
+def get_all_profiles():
+    try:
+        return obj.get_all_profiles()
+    except Exception as e:
+        traceback.print_exc()
+        return make_response(f"error in getAll profiles controller: {e}", 204)
+
 @app.route("/profiles", methods=["POST"])
 @auth.token_auth()
 def add_profile():
@@ -18,3 +28,64 @@ def add_profile():
         traceback.print_exc()
         return make_response(f"error in add profile controller: {e}", 204)
     
+
+@app.route("/profile/<int:id>", methods=["GET"])
+@auth.token_auth()
+def get_profile(id):
+    try:
+        return obj.get_profile(id)
+    except Exception as e:
+        traceback.print_exc()
+        return make_response(f"error in get profile controller: {e}", 204)
+    
+@app.route("/profile/<int:id>", methods=["PUT"])
+@auth.token_auth()
+def update_profile(id):
+    try:
+        return obj.update_profile(id, request.data)
+    except Exception as e:
+        traceback.print_exc()
+        return make_response(f"error in update profile controller: {e}", 204)
+    
+@app.route("/profile/<int:id>", methods=["DELETE"])
+@auth.token_auth()
+def delete_profile(id):
+    try:
+        return obj.delete_profile(id)
+    except Exception as e:
+        traceback.print_exc()
+        return make_response(f"error in delete profile controller: {e}", 204)
+
+@app.route("/profile/<uid>/upload/image", methods=["PUT"])
+@auth.token_auth()
+def profile_upload_image(uid):
+    try:
+        file = request.files['image']
+        # file.save(f"uploads/{file.filename}")
+        uniqueFileName = str(datetime.now().timestamp()).replace(".", "")
+        fileNameSplit = file.filename.split(".")
+        ext = fileNameSplit[len(fileNameSplit)-1]
+        finalFilePath = f"uploads/{uniqueFileName}.{ext}"
+        file.save(finalFilePath)
+        return obj.profile_upload_image(uid, finalFilePath)
+    except Exception as e :
+        traceback.print_exc()
+        return make_response(f"Error in upload profile image controller : {e}", 204)
+ 
+@app.route("/<filename>", methods=["GET"])
+@auth.token_auth()
+def profile_get_image(filename):
+    try:
+        return send_file(f"uploads/{filename}")
+    except Exception as e :
+        traceback.print_exc()
+        return make_response(f"Error in get profile image controller : {e}", 204)
+ 
+@app.route("/image/<int:id>", methods=["GET"])
+@auth.token_auth()
+def get_image_by_id_profile(id):
+    try:
+        return obj.get_image_by_id_profile(id)
+    except Exception as e :
+        traceback.print_exc()
+        return make_response(f"Error in get image by id profile controller : {e}", 204)

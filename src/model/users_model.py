@@ -20,7 +20,7 @@ class users():
             # Decode the data bytes to string and parse as JSON
             data_str = data.decode('utf-8')
             data_dict = json.loads(data_str)
-
+           
             # Retrieve the username and password from the parsed data
             username = data_dict['username']
             password = data_dict['password']
@@ -49,9 +49,125 @@ class users():
             }
             jwtoken = jwt.encode(payload, "HoussemYousfi", algorithm="HS256")
             response = make_response({'token': jwtoken}, 200)
-            response.set_cookie("token", jwtoken)
+            # response.set_cookie("token", jwtoken)
+            response.set_cookie("token", jwtoken, httponly=True, path='/')
             # Return the success response with the token cookie set
             return response
+        
         except Exception as e:
             return make_response({"erreur": str(e)}, 500)
         
+    def add_user(self, data):
+        try:
+            # Decode the data bytes to string and parse as JSON
+            data_str = data.decode('utf-8')
+            data_dict = json.loads(data_str)
+
+            new_username = data_dict['username']
+            new_password = data_dict['password']
+            # new_type_id = data_dict['type_id']
+            new_type_id = 1
+
+            # Check if the username already exists
+            self.cur.execute(
+                f"SELECT id FROM users WHERE username='{new_username}'")
+            existing_user = self.cur.fetchone()
+            if existing_user:
+                return make_response({"message": f"Username {new_username} already exists"}, 400)
+            # Insert the new user
+            sql = """INSERT INTO users (username, password, type_id)
+                    VALUES (%s, %s, %s)"""
+            self.cur.execute(sql, (new_username, new_password, new_type_id))
+            self.conn.commit()
+            self.cur.execute(
+                "SELECT currval(pg_get_serial_sequence('users', 'id'));")
+            user_id = self.cur.fetchone()[0]
+            return make_response({"message": f"User with the id: {user_id} and name: {new_username} created successfully"}, 201)
+        except Exception as e:
+            self.conn.rollback()
+            return make_response({"message": f"Error retrieving add user: {e}"}, 500)
+
+    def update_user(self, id, data):
+        try:
+            # Decode the data bytes to string and parse as JSON
+            data_str = data.decode('utf-8')
+            data_dict = json.loads(data_str)
+
+            current_username = data_dict['username']
+            current_password = data_dict['password']
+            sql = """UPDATE users
+                    SET username=%s,
+                        password=%s
+                    WHERE id=%s"""
+            self.cur.execute(sql, (current_username, current_password, id))
+            self.conn.commit()
+            # Return the updated user
+            updated_user = {
+                "username": current_username,
+                "password": current_password
+            }
+            return make_response(updated_user, 201)
+        except Exception as e:
+            self.conn.rollback()
+            return make_response({"message": f"Error retrieving update user : {e}"}, 500)
+
+    def get_user(self, id):
+        try:
+            self.cur.execute("SELECT * FROM users WHERE id=%s", (id,))
+            row = self.cur.fetchone()
+            if row is not None:
+                self.cur.execute(
+                    "SELECT name FROM types WHERE id=%s", (row[3],))
+                type_res = self.cur.fetchone()
+                if type_res is not None:
+                    user = dict(id=row[0], username=row[1], password=row[2],
+                                type_id=row[3], USER_TYPE=type_res[0])
+                return make_response(user, 200)
+            else:
+                return make_response({"message": "No user found !"}, 202)
+        except Exception as e:
+            self.conn.rollback()
+            return make_response({"message": f"Error retrieving get user : {e}"}, 500)
+
+    def get_all_users(self):
+        try:
+            self.cur.execute("SELECT * FROM users")
+            users = []
+            for row in self.cur.fetchall():
+                self.cur.execute(
+                    "SELECT name FROM types WHERE id=%s", (row[3],))
+                type_res = self.cur.fetchone()
+                self.cur.execute(
+                    "SELECT role_id FROM users_roles WHERE user_id=%s", (row[0],))
+                role_res = self.cur.fetchall()
+                roles = [r[0] for r in role_res]
+                user = dict(id=row[0], username=row[1], password=row[2],
+                            type_id=row[3], USER_TYPE=type_res[0], role_id=roles)
+                users.append(user)
+
+            if users:
+                return make_response(users, 200)
+            else:
+                return make_response({"message": "No users found !"}, 202)
+        except Exception as e:
+            self.conn.rollback()
+            return make_response({"message": f"Error retrieving all users: {e}"}, 500)
+
+    def patch_user(self, data, id):
+        # UPDATE users SET col=val, col=val WHERE id={id}
+        try:
+            json_data = request.get_json()
+            sql_query = "UPDATE users SET "
+            for key in json_data:
+                sql_query += f"{key}='{json_data[key]}',"
+            sql_query = sql_query[:-1] + f" WHERE id=%s"
+            print(sql_query)
+            self.cur.execute(sql_query, (id,))
+            self.conn.commit()
+            if self.cur.rowcount > 0:
+                return make_response({"message": "User Updated in patch model successfully !"}, 201)
+            else:
+                return make_response({"message": "Nothing to Updated in patch model"}, 202)
+        except Exception as e:
+            self.conn.rollback()
+            return make_response({"message": f"Error retrieving patch user : {e}"}, 500)
