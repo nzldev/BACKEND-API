@@ -4,6 +4,7 @@ from model.auth_model import auth_model
 from flask import request, make_response, send_file
 import traceback
 from datetime import datetime
+import os
 
 
 obj = profiles()
@@ -57,7 +58,7 @@ def delete_profile(id):
         return make_response(f"error in delete profile controller: {e}", 204)
 
 @app.route("/profile/<uid>/upload/image", methods=["PUT"])
-@auth.token_auth()
+# @auth.token_auth()
 def profile_upload_image(uid):
     try:
         file = request.files['image']
@@ -65,27 +66,27 @@ def profile_upload_image(uid):
         uniqueFileName = str(datetime.now().timestamp()).replace(".", "")
         fileNameSplit = file.filename.split(".")
         ext = fileNameSplit[len(fileNameSplit)-1]
-        finalFilePath = f"uploads/{uniqueFileName}.{ext}"
+        finalFilePath = f"uploads/images/{uniqueFileName}.{ext}"
         file.save(finalFilePath)
         return obj.profile_upload_image(uid, finalFilePath)
     except Exception as e :
         traceback.print_exc()
         return make_response(f"Error in upload profile image controller : {e}", 204)
- 
+
 @app.route("/<filename>", methods=["GET"])
-@auth.token_auth()
+# @auth.token_auth()
 def profile_get_image(filename):
     try:
-        return send_file(f"uploads/{filename}")
+        return make_response(send_file(f"{os.getcwd()}/uploads/images/{filename}"), 200)
     except Exception as e :
         traceback.print_exc()
         return make_response(f"Error in get profile image controller : {e}", 204)
  
 @app.route("/image/<int:id>", methods=["GET"])
-@auth.token_auth()
+# @auth.token_auth()
 def get_image_by_id_profile(id):
     try:
-        return obj.get_image_by_id_profile(id)
+        return send_file(obj.get_image_by_id_profile(id))
     except Exception as e :
         traceback.print_exc()
         return make_response(f"Error in get image by id profile controller : {e}", 204)

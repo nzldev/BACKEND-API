@@ -3,7 +3,7 @@ from flask import request, make_response, send_file , json
 import psycopg2
 from io import BytesIO
 from db.database import connect
-
+import os
 
 class profiles():
     def __init__(self):
@@ -130,7 +130,7 @@ class profiles():
             f"UPDATE profiles SET image='{filepath}' WHERE id=%s", (uid,))
         self.conn.commit()
         if self.cur.rowcount > 0:
-            return make_response({"message": "Profile image updated successfully !"}, 201)
+            return make_response({"message": f"Profile image updated successfully with name : {filepath}!"}, 201)
         else:
             return make_response({"message": "Nothing done !!!!!!"}, 202)
 
@@ -139,6 +139,7 @@ class profiles():
         result = self.cur.fetchone()
         if result is not None:
             image_path = result[0]
-            return send_file(image_path)
+            # return send_file(f"{image_path}")
+            return f"{os.getcwd()}/{image_path}"
         else:
             return make_response({"message": "No image found for this profile!"}, 404)

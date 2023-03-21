@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 import jwt
 from db.database import connect
 import json
-from flask_jwt_extended import JWTManager, unset_jwt_cookies, jwt_required
 
 class users():
 
@@ -152,22 +151,3 @@ class users():
         except Exception as e:
             self.conn.rollback()
             return make_response({"message": f"Error retrieving all users: {e}"}, 500)
-
-    def patch_user(self, data, id):
-        # UPDATE users SET col=val, col=val WHERE id={id}
-        try:
-            json_data = request.get_json()
-            sql_query = "UPDATE users SET "
-            for key in json_data:
-                sql_query += f"{key}='{json_data[key]}',"
-            sql_query = sql_query[:-1] + f" WHERE id=%s"
-            print(sql_query)
-            self.cur.execute(sql_query, (id,))
-            self.conn.commit()
-            if self.cur.rowcount > 0:
-                return make_response({"message": "User Updated in patch model successfully !"}, 201)
-            else:
-                return make_response({"message": "Nothing to Updated in patch model"}, 202)
-        except Exception as e:
-            self.conn.rollback()
-            return make_response({"message": f"Error retrieving patch user : {e}"}, 500)

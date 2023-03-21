@@ -51,15 +51,6 @@ def get_all_users():
     except Exception as e:
         traceback.print_exc()
         return make_response(f"error in getAll users controller: {e}", 204)
-
-@app.route("/user/patch/<int:id>", methods=["PATCH"])
-@auth.token_auth()
-def patch_user(id):
-    try:
-        return obj.patch_user(request.data, id)
-    except Exception as e:
-        traceback.print_exc()
-        return make_response(f"Error in patch user controller : {e}", 204)
     
 @app.route("/user/<int:id>", methods=["DELETE"])
 @auth.token_auth()
