@@ -1,5 +1,5 @@
 # BACKEND-API
 Python Flask RESTFul Api 
 ********************************
-RUN THIS COMMAND TO START SERVER  
+TO START SERVER RUN THIS COMMAND :
 .\run.cmd

@@ -57,8 +57,8 @@ def delete_profile(id):
         traceback.print_exc()
         return make_response(f"error in delete profile controller: {e}", 204)
 
-@app.route("/profile/<uid>/upload/image", methods=["PUT"])
-# @auth.token_auth()
+@app.route("/profile/upload/image/<int:uid>", methods=["PUT"])
+@auth.token_auth()
 def profile_upload_image(uid):
     try:
         file = request.files['image']
@@ -73,8 +73,8 @@ def profile_upload_image(uid):
         traceback.print_exc()
         return make_response(f"Error in upload profile image controller : {e}", 204)
 
-@app.route("/<filename>", methods=["GET"])
-# @auth.token_auth()
+@app.route("/image/<filename>", methods=["GET"])
+@auth.token_auth()
 def profile_get_image(filename):
     try:
         return make_response(send_file(f"{os.getcwd()}/uploads/images/{filename}"), 200)
@@ -83,7 +83,7 @@ def profile_get_image(filename):
         return make_response(f"Error in get profile image controller : {e}", 204)
  
 @app.route("/image/<int:id>", methods=["GET"])
-# @auth.token_auth()
+@auth.token_auth()
 def get_image_by_id_profile(id):
     try:
         return send_file(obj.get_image_by_id_profile(id))

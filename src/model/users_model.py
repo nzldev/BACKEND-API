@@ -1,3 +1,23 @@
+
+
+# ************************CODE DESCRIPTION USERS_MODEL************************
+
+    # all Functions get requests from controller
+        # Function user_login : get the username and password from request body from client-side 
+                    #and save the token in cookies with name token and value (token.value)
+    
+    # For the rest of function : check the token and if he have permission he can access to function
+        # Function add_user : get the username and password passed from client-side
+                        # and check if the username is not used from another user, then save the new user
+        # Function update_user : get the username and password passed from client-side
+                        # and make the updates of the user who have the id passed in path
+        # Function delete_user : get the id in path for the user that will be deleted
+                        # and make the delete of the user who have the id passed in path
+        # Function get_user : get the id in path for the user searched
+                        # and get the user who have the id=id_passed 
+        # Function get_all_users : get all users with the informations : "id":1 , "username":"houssem", "password":"houssem", "type_id":1, role_id[1,2]
+
+
 from app import app
 from flask import request, make_response, jsonify
 import psycopg2
@@ -5,6 +25,7 @@ from datetime import datetime, timedelta
 import jwt
 from db.database import connect
 import json
+import logging
 
 class users():
 
@@ -50,7 +71,10 @@ class users():
             response = make_response({'token': jwtoken}, 200)
             # response.set_cookie("token", jwtoken)
             response.set_cookie("token", jwtoken, httponly=True, path='/')
+            # token = request.cookies.get('token')
+            # print(token)
             # Return the success response with the token cookie set
+            logging.info(f"{username} has logged in at {datetime.now()}")
             return response
         
         except Exception as e:
@@ -81,6 +105,7 @@ class users():
             self.cur.execute(
                 "SELECT currval(pg_get_serial_sequence('users', 'id'));")
             user_id = self.cur.fetchone()[0]
+            # logging.info(f"{username} has logged in at {datetime.now()}")
             return make_response({"message": f"User with the id: {user_id} and name: {new_username} created successfully"}, 201)
         except Exception as e:
             self.conn.rollback()

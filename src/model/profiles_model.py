@@ -1,3 +1,23 @@
+
+
+# ************************CODE DESCRIPTION PROFILES_MODEL************************
+
+    # all Functions get requests from controller : check the token and if he have permission he can access to function
+
+        # Function add_profile : get the profile informations : name, email, telephone, adresse, image, description, user_id passed from client-side
+                        # and then save the profile with the user_id to affect the profile to the user who have this user_id
+        # Function update_profile : get the profile informations passed from client-side
+                        # and make the updates of the profile who have the id passed in path
+        # Function delete_profile : get the id in path for the profile that will be deleted
+                        # and make the delete of the profile who have the id passed in path
+        # Function get_profile : get the id in path for the profile searched
+                        # and get the profile who have the id=id_passed 
+        # Function get_all_profiles : get all profiles with the informations : id, name, email, telephone, adresse, image, description, user_id 
+        # Function upload_image_file : get the image passed in the client-side and cript the name with thisTime to be all the images names are differents
+        # Function get_image_by_id : get the id of profile in path passed from client-side 
+                        # then get the image of profile who have that id passed
+
+
 from app import app
 from flask import request, make_response, send_file , json
 import psycopg2
@@ -124,7 +144,6 @@ class profiles():
 
 
     # FILES HEREEEEE
-
     def profile_upload_image(self, uid, filepath):
         self.cur.execute(
             f"UPDATE profiles SET image='{filepath}' WHERE id=%s", (uid,))

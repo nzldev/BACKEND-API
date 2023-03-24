@@ -4,6 +4,8 @@ from model.auth_model import auth_model
 from flask import request, make_response
 import traceback
 
+from datetime import datetime
+
 
 obj = users()
 auth = auth_model()
@@ -11,7 +13,12 @@ auth = auth_model()
 @app.route("/user/login", methods=["POST"])
 def user_login():
     try:
+        # username = obj.user_login(request.data)
+        # logging.info(f"{username} has logged in at {datetime.now()}")
+        # return username
+        
         return obj.user_login(request.data)
+        
     except Exception as e:
         traceback.print_exc()
         return make_response(f"Error user_login controller : {e}", 204)

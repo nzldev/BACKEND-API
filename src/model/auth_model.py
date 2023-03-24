@@ -1,3 +1,8 @@
+#Code Description:
+    # Function token_auth : Verif if the current user has the permission for access to the api requested or not !
+
+
+
 from functools import wraps
 import psycopg2
 from app import app
@@ -22,11 +27,8 @@ class auth_model():
             def inner2(*args, **kwargs):
                 endpoint = request.url_rule.rule
                 # print(endpoint)
-                token = request.cookies.get("token")
+                token = request.headers.get("Authorization", "").split(" ")[-1]
                 # print(token)
-                if not token:
-                    token = request.headers.get("Authorization", "").split(" ")[-1]
-
                 if token:
                     try:
                         jwtdecoded = jwt.decode(token, "HoussemYousfi", algorithms="HS256")
@@ -56,7 +58,7 @@ class auth_model():
                     self.cur.execute(f"SELECT role_id FROM roles_permissions WHERE permission_id= '{per_id}'")
                     result = self.cur.fetchall()
                     if result is not None:
-                        role_ids_db = [result[0] for result in result]
+                        role_ids_db = [res[0] for res in result]
                         # if role_id in role_ids_db:
                         if set(role_ids).intersection(set(role_ids_db)):
                             return func(*args, **kwargs)
@@ -68,3 +70,4 @@ class auth_model():
                     return make_response({"ERROR": "INVALID_TOKEN"}, 401)
             return inner2
         return inner1
+    
