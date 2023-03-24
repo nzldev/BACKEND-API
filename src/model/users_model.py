@@ -69,8 +69,13 @@ class users():
             }
             jwtoken = jwt.encode(payload, "HoussemYousfi", algorithm="HS256")
             response = make_response({'token': jwtoken}, 200)
+
+
+            # Set the Authorization header with the Bearer token prefix
+            response.headers['Authorization'] = f'Bearer {jwtoken}'
+
             # response.set_cookie("token", jwtoken)
-            response.set_cookie("token", jwtoken, httponly=True, path='/')
+            # response.set_cookie("token", jwtoken, httponly=True, path='/')
             # token = request.cookies.get('token')
             # print(token)
             # Return the success response with the token cookie set
